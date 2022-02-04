@@ -1,8 +1,8 @@
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
 import { useState } from "react";
-import { useRouter } from "next/router"
+import { useRouter } from "next/router";
 import appConfig from "../config.json";
-
+import { api } from "../api/api";
 
 function Titulo(props) {
   const Tag = props.tag || "h1";
@@ -22,7 +22,32 @@ function Titulo(props) {
 
 export default function PaginaInicial() {
   const [username, setUsername] = useState("AntonyRafael");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const roteamento = useRouter();
+
+  const handleChange = async (event) => {
+    setUsername(event.target.value);
+    try {
+      setError(null);
+      setLoading(true);
+      const response = await api.get(`users/${username}`);
+      const { data } = response;
+      setUsername(data.username);
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+      setError("User not found in database, try again !");
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    roteamento.push("/chat");
+  };
 
   return (
     <>
@@ -60,11 +85,7 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
-            onSubmit={(event) => {
-              event.preventDefault()
-              roteamento.push("/chat")
-              // window.location.href = '/chat';
-            }}
+            onSubmit={handleSubmit}
             styleSheet={{
               display: "flex",
               flexDirection: "column",
@@ -94,9 +115,10 @@ export default function PaginaInicial() {
             <TextField
               type="text"
               value={username}
-              onChange={(event) => {
-                setUsername(event.target.value);
-              }}
+              // onChange={(event) => {
+              //   setUsername(event.target.value);
+              // }}
+              onChange={handleChange}
               fullWidth
               textFieldColors={{
                 neutral: {
@@ -107,17 +129,32 @@ export default function PaginaInicial() {
                 },
               }}
             />
-            <Button
-              type="submit"
-              label="Entrar"
-              fullWidth
-              buttonColors={{
-                contrastColor: appConfig.theme.colors.neutrals["000"],
-                mainColor: appConfig.theme.colors.primary[900],
-                mainColorLight: appConfig.theme.colors.primary[500],
-                mainColorStrong: appConfig.theme.colors.primary[700],
-              }}
-            />
+            {username ? (
+              <Button
+                type="submit"
+                label="Entrar"
+                fullWidth
+                buttonColors={{
+                  contrastColor: appConfig.theme.colors.neutrals["000"],
+                  mainColor: appConfig.theme.colors.primary[900],
+                  mainColorLight: appConfig.theme.colors.primary[500],
+                  mainColorStrong: appConfig.theme.colors.primary[700],
+                }}
+              />
+            ) : (
+              <Button
+                type="submit"
+                label="Verifique os dados"
+                disabled
+                fullWidth
+                buttonColors={{
+                  contrastColor: appConfig.theme.colors.neutrals["000"],
+                  mainColor: appConfig.theme.colors.primary[900],
+                  mainColorLight: appConfig.theme.colors.primary[500],
+                  mainColorStrong: appConfig.theme.colors.primary[700],
+                }}
+              />
+            )}
           </Box>
           {/* Formulário */}
 
@@ -142,7 +179,11 @@ export default function PaginaInicial() {
                 borderRadius: "50%",
                 marginBottom: "16px",
               }}
-              src={`https://github.com/${username}.png`}
+              src={
+                username
+                  ? `https://github.com/${username}.png`
+                  : `https://img.wattpad.com/8f19b412f2223afe4288ed0904120a48b7a38ce1/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f776174747061642d6d656469612d736572766963652f53746f7279496d6167652f5650722d38464e2d744a515349673d3d2d3234323931353831302e313434336539633161633764383437652e6a7067?s=fit&w=720&h=720`
+              }
             />
             <Text
               variant="body4"
@@ -153,7 +194,7 @@ export default function PaginaInicial() {
                 borderRadius: "1000px",
               }}
             >
-              {username}
+              {username ? username : "usuário não encontrado"}
             </Text>
           </Box>
           {/* Photo Area */}
