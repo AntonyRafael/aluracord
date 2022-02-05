@@ -1,21 +1,48 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter } from "next/router";
+
 import appConfig from "../config.json";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0NDA3OTIyOSwiZXhwIjoxOTU5NjU1MjI5fQ.qTVmOfpUssw46cvM9TDKzdH9BOgdBQ_b-Z6y_6PUxc0";
+const SUBASE_URL = "https://dkppmiltfmjcnzqhjbju.supabase.co";
+
+const subaseClient = createClient(SUBASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
   const [mensagem, setMensagem] = React.useState("");
   const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
+  const router = useRouter();
+  const { username } = router.query;
 
   function handleNovaMensagem(novaMensagem) {
     const mensagem = {
-      id: listaDeMensagens.length + 1,
-      de: "vanessametonini",
+      de: username,
       texto: novaMensagem,
     };
 
-    setListaDeMensagens([mensagem, ...listaDeMensagens]);
+    subaseClient
+      .from("mensagens")
+      .insert([mensagem])
+      .then(({ data }) => {
+        setListaDeMensagens([data[0], ...listaDeMensagens]);
+      });
+
+    // setListaDeMensagens([mensagem, ...listaDeMensagens]);
     setMensagem("");
   }
+
+  useEffect(() => {
+    subaseClient
+      .from("mensagens")
+      .select("*")
+      .order("id", { ascending: false })
+      .then(({ data }) => {
+        setListaDeMensagens(data);
+      });
+  }, []);
 
   return (
     <Box
@@ -170,7 +197,7 @@ function MessageList(props) {
                   display: "inline-block",
                   marginRight: "8px",
                 }}
-                src={`https://github.com/vanessametonini.png`}
+                src={`https://github.com/${mensagem.de}.png`}
               />
               <Text tag="strong">{mensagem.de}</Text>
               <Text

@@ -32,8 +32,8 @@ export default function PaginaInicial() {
       setError(null);
       setLoading(true);
       const response = await api.get(`users/${username}`);
-      const { data } = response;
-      setUsername(data.username);
+      const { data : {username} } = response;
+      setUsername(username);
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -46,7 +46,7 @@ export default function PaginaInicial() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    roteamento.push("/chat");
+    roteamento.push(`/chat?username=${username}`);
   };
 
   return (
