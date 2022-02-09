@@ -200,6 +200,7 @@ export default function ChatPage() {
                   filter: "grayscale(0)",
                 },
               }}
+              disabled={mensagem.length == 0}
               label="OK!"
               onClick={() => handleNovaMensagem(mensagem)}
             />
